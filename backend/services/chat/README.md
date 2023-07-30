@@ -41,7 +41,7 @@ En resumen, la implementación del estilo "Constructivist" en este código se en
 
 <!-- Centrar la imagen y darle dimensiones -->
 <div style="display: flex; justify-content: center;">
-  <img src="2_style_constructivist.png" alt="2_style_constructivist" style="width: 150px;">
+  <img src="2_style_constructivist.png" alt="2_style_constructivist" style="width: 450px;">
 </div>
 
 ## _Estilo RestFul_
@@ -64,5 +64,46 @@ En RESTful, cada recurso tiene una representación, que suele ser en formato JSO
 
 La implementación del estilo RESTful en el código se logra al crear una API que sigue los principios y restricciones de REST. Se definen rutas y controladores para cada recurso, y el cliente interactúa con estos recursos utilizando métodos HTTP y URLs. Los datos se intercambian en formato JSON entre el cliente y el servidor, lo que proporciona una interfaz uniforme y sin estado para una comunicación efectiva entre ambas partes.
 
-![app.js](3_style_restful.png)
-![index.js](3_style_restful_2.png)
+<pre>
+```javascript
+//app.js
+import express from "express";
+import fileUpload from "express-fileupload";
+import chatRoutes from "./routes/chat.routes.js";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import cors from 'cors';
+
+const app = express();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// middlewares
+app.use(cors())
+app.use(express.json());
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "./upload",
+  })
+);
+
+// routes
+app.use(chatRoutes);
+console.log(__dirname);
+app.use(express.static(join(__dirname, "../client/build")));
+
+export default app;
+
+```
+</pre>
+<pre>
+```javascript
+import app from './app.js'
+import { connectDB } from "./db.js";
+import { PORT } from "./config.js";
+
+connectDB();
+app.listen(PORT);
+console.log(`Server on port ${PORT}`);
+```
+</pre>
