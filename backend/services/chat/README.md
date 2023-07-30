@@ -20,8 +20,68 @@ La implementación en el controlador (`chat.controllers.js`) de cada una de esta
 
 Es importante mencionar que, en esta implementación, la cadena de llamadas a funciones está controlada por Express y se basa en las rutas definidas en el archivo `chat.routes.js`. El middleware de Express se encarga de invocar cada función en la secuencia adecuada según la ruta y el método HTTP que se esté utilizando en la solicitud.
 
-![chat.routes.js](1_style_pipeline.png)
-![chat.controllers.js](1_style_pipeline_2.png)
+- chat.routes.js
+```javascript
+import { Router } from "express";
+import {
+  createMessage,
+  deleteMessage,
+  getConversation,
+  getChats,
+} from "../controllers/chat.controllers.js";
+
+const router = Router();
+
+router.get("/chats", getChats);
+
+router.post("/chats", createMessage);
+
+router.delete("/chats/:id", deleteMessage);
+
+router.get("/chats/:id", getConversation);
+
+export default router;
+
+```
+- chat.controllers.js
+```javascript
+export const deleteMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const message = await Message.findById(id);
+
+    if (!message) {
+      return res.status(404).json({ message: "Mensaje no encontrado" });
+    }
+
+    await message.remove();
+    res.json({ message: "Mensaje eliminado exitosamente" });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getConversation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const conversation = await Message.find({
+      $or: [{ sender: id }, { receiver: id }],
+    });
+
+    if (conversation.length === 0) {
+      throw new Error("Conversación no encontrada");
+    }
+
+    res.json(conversation);
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Error en el servidor" });
+  }
+};
+
+
+```
 
 ## _Estilo Constructivist_
 La implementación del estilo "Constructivist" en el código se centra en manejar los errores encontrados y continuar proporcionando una respuesta "razonable" incluso si algo falla durante la obtención de los mensajes de chat.
@@ -40,9 +100,21 @@ En lugar de detener la ejecución del servidor o lanzar una excepción, el estil
 En resumen, la implementación del estilo "Constructivist" en este código se enfoca en manejar los posibles errores de manera controlada y proporcionar una respuesta adecuada al cliente en caso de que ocurra algún problema durante la obtención de los mensajes de chat. En lugar de detenerse por completo, el código sigue ejecutándose y envía una respuesta "razonable" para asegurarse de que el servidor continúe funcionando de manera tolerante a fallos.
 
 <!-- Centrar la imagen y darle dimensiones -->
-<div style="display: flex; justify-content: center;">
-  <img src="2_style_constructivist.png" alt="2_style_constructivist" style="width: 450px;">
-</div>
+- chat.controllers.js
+```javascript
+import Message from "../models/Message.js";
+
+export const getChats = async (req, res) => {
+  try {
+    const messages = await Message.find();
+    res.send(messages);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+```
 
 ## _Estilo RestFul_
 La implementación del estilo RESTful en el código proporcionado se centra en la creación de una API que sigue los principios y restricciones de REST (REpresentational State Transfer) para construir una interfaz interactiva entre un cliente y un servidor. A continuación, explicaré cómo se implementan los principios RESTful en el código detalladamente:
@@ -64,9 +136,8 @@ En RESTful, cada recurso tiene una representación, que suele ser en formato JSO
 
 La implementación del estilo RESTful en el código se logra al crear una API que sigue los principios y restricciones de REST. Se definen rutas y controladores para cada recurso, y el cliente interactúa con estos recursos utilizando métodos HTTP y URLs. Los datos se intercambian en formato JSON entre el cliente y el servidor, lo que proporciona una interfaz uniforme y sin estado para una comunicación efectiva entre ambas partes.
 
-<pre>
+- app.js
 ```javascript
-//app.js
 import express from "express";
 import fileUpload from "express-fileupload";
 import chatRoutes from "./routes/chat.routes.js";
@@ -93,10 +164,10 @@ console.log(__dirname);
 app.use(express.static(join(__dirname, "../client/build")));
 
 export default app;
-
 ```
-</pre>
-<pre>
+
+- index.js
+
 ```javascript
 import app from './app.js'
 import { connectDB } from "./db.js";
@@ -106,4 +177,3 @@ connectDB();
 app.listen(PORT);
 console.log(`Server on port ${PORT}`);
 ```
-</pre>
