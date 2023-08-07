@@ -1,6 +1,6 @@
 # Laboratorio 11: Principios SOLID
 
-Principio de Responsabilidad Única (Single Responsibility Principle):
+## Principio de Responsabilidad Única (Single Responsibility Principle):
 
 En el módulo de manejo de mensajes en un chat de red social, se ha aplicado el Principio de Responsabilidad Única (Single Responsibility Principle) de SOLID de manera coherente y organizada. Cada función exportada se encarga de tareas específicas y tiene una única responsabilidad, lo que facilita la comprensión, el mantenimiento y la escalabilidad del código.
 
@@ -104,5 +104,53 @@ export const getConversation = async (req, res) => {
     return res.status(500).json({ message: "Error en el servidor" });
   }
 };
+
+```
+
+## Principio de Abierto/Cerrado (Open/Closed Principle)
+
+El Principio de Abierto/Cerrado (Open/Closed Principle) establece que las entidades de software deben estar abiertas para la extensión pero cerradas para la modificación. Este principio busca promover la capacidad de agregar nuevas funcionalidades o realizar cambios en el sistema sin alterar el código existente. Veamos cómo las funciones personalizadas definidas en el modelo de Mongoose (`Message`) se ajustan a este principio:
+
+1. **Función `findBySender`**:
+
+   Esta función personalizada permite buscar mensajes según el remitente. Siguiendo el Principio de Abierto/Cerrado:
+
+   - **Cerrado para Modificación**: La función `findBySender` se agrega como un método estático en el modelo `Message`, lo que significa que no es necesario modificar el código existente del modelo o las funciones ya implementadas para agregar esta funcionalidad. Esto garantiza que el comportamiento original del modelo permanezca intacto.
+   
+   - **Abierto para Extensión**: Si necesitas buscar mensajes por remitente en el futuro o agregar otras operaciones de búsqueda personalizadas, puedes hacerlo definiendo más funciones personalizadas en el mismo estilo. No necesitas modificar la implementación original, lo que mantiene la cohesión y la consistencia del modelo.
+
+2. **Función `findMessagesInTimeRange`**:
+
+   Esta función personalizada permite buscar mensajes en un intervalo de tiempo específico. Aplicando el Principio de Abierto/Cerrado:
+
+   - **Cerrado para Modificación**: Al igual que en el caso anterior, esta función se agrega como un método estático en el modelo `Message`. No es necesario modificar las funciones existentes o el comportamiento original del modelo para implementar esta funcionalidad.
+   
+   - **Abierto para Extensión**: Si en el futuro necesitas realizar búsquedas más complejas basadas en la fecha, puedes crear nuevas funciones personalizadas sin afectar el código existente. Esto mantiene el modelo flexible para futuras extensiones.
+
+En resumen, tanto la función `findBySender` como la función `findMessagesInTimeRange` encajan bien con el Principio de Abierto/Cerrado. Puedes extender las capacidades del modelo añadiendo nuevas funciones personalizadas sin cambiar el código existente. Esto ayuda a mantener la integridad y la estabilidad del modelo de Mongoose mientras permites la incorporación de nuevas funcionalidades en el futuro.
+
+- Modelo Message
+```javascript
+import mongoose from "mongoose";
+
+const messageSchema = new mongoose.Schema({
+  // Definición de campos...
+});
+
+// Definición de métodos personalizados
+messageSchema.statics.findBySender = async function (senderId) {
+  return this.find({ sender: senderId });
+};
+
+messageSchema.statics.findMessagesInTimeRange = async function (startDate, endDate) {
+  return this.find({
+    timestamp: { $gte: startDate, $lte: endDate }
+  });
+};
+
+const Message = mongoose.model("Message", messageSchema);
+
+export default Message;
+
 
 ```

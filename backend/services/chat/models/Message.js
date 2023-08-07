@@ -21,6 +21,18 @@ const messageSchema = new mongoose.Schema({
   },
 });
 
+// Definición de métodos personalizados
+messageSchema.statics.findBySender = async function (senderId) {
+  return this.find({ sender: senderId });
+};
+
+messageSchema.statics.findMessagesInTimeRange = async function (startDate, endDate) {
+  return this.find({
+    timestamp: { $gte: startDate, $lte: endDate }
+  });
+};
+
+
 const Message = mongoose.model("Message", messageSchema);
 
 export default Message;
